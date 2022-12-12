@@ -50,7 +50,6 @@ class SearchPage: UIViewController {
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
         cv.translatesAutoresizingMaskIntoConstraints = false
         cv.register(FirstCollectionViewCell.self, forCellWithReuseIdentifier: "CollectionCell")
-//        cv.backgroundColor = .systemIndigo
         
         return cv
     }()
@@ -60,7 +59,7 @@ class SearchPage: UIViewController {
         super.viewDidLoad()
 
         view.addSubview(searchBar)
-        searchBar.becomeFirstResponder()
+        
         
         collectionView.delegate = self
         collectionView.dataSource = self
@@ -71,6 +70,7 @@ class SearchPage: UIViewController {
     
 
     override func viewDidLayoutSubviews() {
+        searchBar.becomeFirstResponder()
         
         let safeArea = view.layoutMarginsGuide
         
@@ -113,7 +113,6 @@ class SearchPage: UIViewController {
 
 extension SearchPage: UISearchBarDelegate {
 
-    
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchText.isEmpty {
             searchPhoto = []
