@@ -1,0 +1,6 @@
+framework module Pods_OnlineHackathon {
+  umbrella header "Pods-OnlineHackathon-umbrella.h"
+
+  export *
+  module * { export * }
+}
