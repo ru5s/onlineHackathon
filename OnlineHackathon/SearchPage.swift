@@ -59,7 +59,7 @@ class SearchPage: UIViewController {
         super.viewDidLoad()
 
         view.addSubview(searchBar)
-        
+        navigationItem.hidesSearchBarWhenScrolling = true
         
         collectionView.delegate = self
         collectionView.dataSource = self
@@ -123,7 +123,7 @@ extension SearchPage: UISearchBarDelegate {
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
         searchBar.endEditing(true)
         self.searchBar.showsCancelButton = false
-        searchPhoto = []
+        
         collectionView.reloadData()
     }
 
@@ -135,6 +135,7 @@ extension SearchPage: UISearchBarDelegate {
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         if searchBar.text!.count > 0 {
+            searchPhoto = []
             searchPhoto(for: searchBar.text!, page: currentPage)
             textInSearchBar = searchBar.text!
             collectionView.reloadData()

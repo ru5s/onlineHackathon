@@ -8,8 +8,6 @@
 import UIKit
 import Moya
 import Kingfisher
-
-
 class FirstPage: UIViewController {
     
     var allPhoto: [PhotoModel] = []
@@ -20,63 +18,80 @@ class FirstPage: UIViewController {
     
     var numOfColumn: Int = 0
     
-    var collectionView: UICollectionView = {
-        let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .vertical
-        
-        let countOfCell = 2
-        let sizeToCell = (Int(UIScreen.main.bounds.width - 30) - (countOfCell * 10)) / countOfCell
-        
-        layout.itemSize = CGSize(width: sizeToCell, height: sizeToCell)
-        
-//        layout.minimumLineSpacing = 10
-//        layout.minimumInteritemSpacing = 10
-//        layout.sectionInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
-        
-        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        cv.translatesAutoresizingMaskIntoConstraints = false
-        cv.register(FirstCollectionViewCell.self, forCellWithReuseIdentifier: "CollectionCell")
-//        cv.backgroundColor = .systemIndigo
-        
-        return cv
-    }()
-
+    var pinchGesture = UIPinchGestureRecognizer()
+    
+    let margin: CGFloat = 5
+    var cellsPerRow = 3
+    
+    var collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout.init())
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        collectionView.delegate = self
-        collectionView.dataSource = self
+        //add collection view
+        guard let flowLayout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout else {return}
+        flowLayout.minimumInteritemSpacing = margin
+        flowLayout.minimumLineSpacing = margin
+        flowLayout.scrollDirection = .vertical
+        flowLayout.sectionInset = UIEdgeInsets(top: margin, left: margin, bottom: margin, right: margin)
+        collectionView = UICollectionView(frame: self.view.bounds, collectionViewLayout: flowLayout)
+        collectionView.register(FirstCollectionViewCell.self, forCellWithReuseIdentifier: "CollectionCell")
+        collectionView.contentInsetAdjustmentBehavior = .always
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
         
         view.addSubview(collectionView)
         
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        //end
+        
         view.backgroundColor = .white
         
-//        let pinch = UIPinchGestureRecognizer(target: self, action: #selector(pinchStart(sender:)))
-        
-//        searchPhoto(for: "Ocean")
+        pinchGesture.delegate = self
+        pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(pinchStart(sender:)))
+        view.addGestureRecognizer(pinchGesture)
+
         collectionView.reloadData()
     }
     
-//    @objc private func pinchStart(sender: UIPinchGestureRecognizer){
-//        var current: CGFloat = 0
-//        if (sender.state == .began){
-//            current = sender.scale
-//        }
-//        if (sender.state == .ended){
-//            let changedScale = sender.scale
-////            current > changedScale ? numOfColumn + 1 : numOfColumn - 1
-//        }
-//    }
+    @objc private func pinchStart(sender: UIPinchGestureRecognizer){
+        var pinchScale = pinchGesture.scale
+        pinchScale = round(pinchScale * 1000) / 1000
+        
+        if pinchGesture.state == .ended {
+            if pinchScale > 1 {
+                cellsPerRow < 2 ? (cellsPerRow = 1) : (cellsPerRow -= 1)
+                flowLayout(cellsPerRow)
+                collectionView.reloadData()
+            }else{
+                cellsPerRow > 3 ? (cellsPerRow = 4) : (cellsPerRow += 1)
+                flowLayout(cellsPerRow)
+                collectionView.reloadData()
+            }
+            
+        }
+    }
     
     override func viewDidLayoutSubviews() {
         let safeArea = view.layoutMarginsGuide
+        //add item size to collection view
+        flowLayout(cellsPerRow)
+        //end
         
         requestApi(currentPage: currentPage)
         
         collectionView.topAnchor.constraint(equalTo: safeArea.topAnchor).isActive = true
         collectionView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor).isActive = true
-        collectionView.leftAnchor.constraint(equalTo: safeArea.leftAnchor).isActive = true
-        collectionView.rightAnchor.constraint(equalTo: safeArea.rightAnchor).isActive = true
+        collectionView.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
+        collectionView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
+        
+        
+        collectionView.reloadData()
+    }
+    
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        collectionView.collectionViewLayout.invalidateLayout()
+        super.viewWillTransition(to: size, with: coordinator)
     }
     
     private func requestApi(currentPage: Int){
@@ -85,24 +100,20 @@ class FirstPage: UIViewController {
             case .success(let respond):
                 let result = try! JSONSerialization.jsonObject(with: respond.data, options: [])
                 guard let jsonData = result as? [String:Any] else {return}
-                
                 let photos = Photos(JSON: jsonData)
-                
                 for item in photos!.photos{
                     self.allPhoto.append(item)
                 }
                 self.collectionView.reloadData()
-                
             case .failure(let error):
                 print("request error \(error)")
             }
         }
     }
-    
 }
 
 
-extension FirstPage: UICollectionViewDelegate, UICollectionViewDataSource{
+extension FirstPage: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout{
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return allPhoto.count
     }
@@ -156,4 +167,13 @@ extension FirstPage: UICollectionViewDelegate, UICollectionViewDataSource{
         //TabBar took over all the actions
     }
     
+}
+
+extension FirstPage: UIGestureRecognizerDelegate{
+    func flowLayout (_ perColumn: Int) {
+        guard let flowLayout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout else {return}
+        let marginAndInsets = flowLayout.sectionInset.left + flowLayout.sectionInset.right + collectionView.safeAreaInsets.left + collectionView.safeAreaInsets.right + flowLayout.minimumInteritemSpacing * CGFloat(cellsPerRow - 1)
+        let itemWidth = ((collectionView.bounds.size.width - marginAndInsets) / CGFloat(perColumn)).rounded(.down)
+        flowLayout.itemSize = CGSize(width: itemWidth, height: itemWidth)
+    }
 }
