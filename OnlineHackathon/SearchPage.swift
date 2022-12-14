@@ -65,12 +65,14 @@ class SearchPage: UIViewController {
         collectionView.dataSource = self
         view.addSubview(collectionView)
         
+        searchBar.becomeFirstResponder()
+        
         collectionView.reloadData()
     }
     
 
     override func viewDidLayoutSubviews() {
-        searchBar.becomeFirstResponder()
+        
         
         let safeArea = view.layoutMarginsGuide
         

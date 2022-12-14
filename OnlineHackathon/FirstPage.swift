@@ -8,6 +8,8 @@
 import UIKit
 import Moya
 import Kingfisher
+
+
 class FirstPage: UIViewController {
     
     var allPhoto: [PhotoModel] = []
@@ -25,9 +27,11 @@ class FirstPage: UIViewController {
     
     var collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout.init())
     
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        showStatusAlert()
         //add collection view
         guard let flowLayout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout else {return}
         flowLayout.minimumInteritemSpacing = margin
@@ -71,6 +75,22 @@ class FirstPage: UIViewController {
             
         }
     }
+    
+    private func showStatusAlert(){
+        let alert = UIAlertController(title: "Pinch mode", message: "You can use in photo stock", preferredStyle: .alert)
+        
+        let image = UIImageView(frame: CGRect(x: 10, y: 70, width: 200, height: 200))
+        image.image = UIImage(named: "Pinch_zoom")
+        alert.view.addSubview(image)
+        
+        image.centerXAnchor.constraint(equalTo: alert.view.centerXAnchor).isActive = true
+        image.bottomAnchor.constraint(equalTo: alert.view.bottomAnchor, constant: -10).isActive = true
+
+        self.present(alert, animated: true, completion: nil)
+        Timer.scheduledTimer(withTimeInterval: 1.5, repeats: false, block: { _ in alert.dismiss(animated: true, completion: nil)} )
+            
+        }
+    
     
     override func viewDidLayoutSubviews() {
         let safeArea = view.layoutMarginsGuide
