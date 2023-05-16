@@ -49,7 +49,7 @@ class FirstPage: UIViewController {
         collectionView.dataSource = self
         //end
         
-        view.backgroundColor = .white
+//        view.backgroundColor = .white
         
         pinchGesture.delegate = self
         pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(pinchStart(sender:)))
@@ -155,6 +155,7 @@ extension FirstPage: UICollectionViewDelegate, UICollectionViewDataSource, UICol
     }
     
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        print("++ scroll")
         let nextPage = currentPage + 1
         requestApi(currentPage: nextPage)
         currentPage = nextPage
